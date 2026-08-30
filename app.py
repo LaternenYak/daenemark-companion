@@ -4,9 +4,6 @@ from deep_translator import MyMemoryTranslator
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 
-# Sprache für Wikipedia auf Deutsch stellen
-wikipedia.set_lang("de")
-
 # --- KOPFZEILE & SEITEN-LAYOUT ---
 st.set_page_config(page_title="Dänemark Companion", page_icon="🇩🇰", layout="centered")
 
