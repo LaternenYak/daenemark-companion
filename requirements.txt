@@ -1,3 +1,4 @@
 streamlit
-deep-translator>=1.11.4
+deep-translator
 requests
+geopy
