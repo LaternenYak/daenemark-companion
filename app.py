@@ -1,4 +1,5 @@
 import streamlit as st
+from deep_translator import GoogleTranslator
 
 # --- KOPFZEILE & SEITEN-LAYOUT ---
 st.set_page_config(page_title="Dänemark Companion", page_icon="🇩🇰", layout="centered")
@@ -9,7 +10,7 @@ st.caption("Dein Helfer für das Auswandern nach Dänemark")
 # Navigation über ein Auswahlmenü (Tab-Struktur)
 thema = st.selectbox(
     "Was möchtest du tun?",
-    ["Währungsrechner (DKK / EUR)", "Wichtige Links & Adressen"]
+    ["Währungsrechner (DKK / EUR)", "Wichtige Links & Adressen", "Wörterbuch & Übersetzer (DA / DE)"]
 )
 
 st.divider()
@@ -58,3 +59,31 @@ elif thema == "Wichtige Links & Adressen":
             st.markdown(f"### [{titel}]({url})")
             st.write(info)
             st.divider()
+
+
+# --- MODUL 3: UNBEGRENZTES WÖRTERBUCH & ÜBERSETZER ---
+elif thema == "Wörterbuch & Übersetzer (DA / DE)":
+    st.subheader("🌐 Dänisch-Deutsch Übersetzer")
+    st.write("Übersetze beliebige Wörter oder ganze Sätze:")
+    
+    richtung = st.radio(
+        "Richtung wählen:",
+        ["Dänisch ➔ Deutsch", "Deutsch ➔ Dänisch"],
+        horizontal=True
+    )
+    
+    eingabe = st.text_input("Wort oder Satz eingeben:").strip()
+    
+    if eingabe:
+        try:
+            if richtung == "Dänisch ➔ Deutsch":
+                uebersetzer = GoogleTranslator(source='da', target='de')
+            else:
+                uebersetzer = GoogleTranslator(source='de', target='da')
+                
+            ergebnis = uebersetzer.translate(eingabe)
+            
+            st.success(f"**Übersetzung:** {ergebnis}")
+            
+        except Exception as e:
+            st.error("Fehler bei der Übersetzung. Bitte überprüfe deine Internetverbindung.")
