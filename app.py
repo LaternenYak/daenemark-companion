@@ -1,7 +1,11 @@
 import streamlit as st
+import wikipedia
 from deep_translator import MyMemoryTranslator
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
+
+# Sprache für Wikipedia auf Deutsch stellen
+wikipedia.set_lang("de")
 
 # --- KOPFZEILE & SEITEN-LAYOUT ---
 st.set_page_config(page_title="Dänemark Companion", page_icon="🇩🇰", layout="centered")
@@ -16,7 +20,8 @@ thema = st.selectbox(
         "Währungsrechner (DKK / EUR)",
         "Wichtige Links & Adressen",
         "Wörterbuch & Übersetzer (DA / DE)",
-        "Entfernungsrechner (Dänemark)"
+        "Entfernungsrechner (Dänemark)",
+        "Wikipedia Orts-Infos"
     ]
 )
 
@@ -71,24 +76,18 @@ elif thema == "Wichtige Links & Adressen":
 elif thema == "Wörterbuch & Übersetzer (DA / DE)":
     st.subheader("🌐 Dänisch-Deutsch Wörterbuch")
     
-    # Integrierte Vokabeldatenbank für präzise Ergebnisse
     woerterbuch = {
-        # Grundbegriffe & Alltag
         "ja": "ja", "nej": "nein", "tak": "danke", "mange tak": "vielen Dank",
         "hej": "hallo", "farvel": "auf Wiedersehen", "godmorgen": "guten Morgen",
         "goddag": "guten Tag", "godaften": "guten Abend", "godnat": "gute Nacht",
         "undskyld": "Entschuldigung", "hvilken": "welcher / welche", "hvor": "wo",
         "hvad": "was", "hvem": "wer", "hvornår": "wann", "hvorfor": "warum",
         "ikke": "nicht", "måske": "vielleicht", "hjælp": "Hilfe",
-
-        # Behörden & Auswandern
         "kommune": "Gemeinde / Kommune", "borgerservice": "Bürgerservice",
         "cpr-nummer": "Personennummer (CPR)", "skat": "Steuer / Steuerbehörde",
         "skattekort": "Steuerkarte", "nemid": "MitID / NemID", "mitid": "MitID",
         "arbejde": "Arbeit", "job": "Job", "ansøgning": "Bewerbung",
         "kontrakt": "Vertrag", "løn": "Lohn / Gehalt", "opholdstilladelse": "Aufenthaltserlaubnis",
-        
-        # Wohnung & Leben
         "bolig": "Wohnung / Haus", "lejlighed": "Wohnung", "hus": "Haus",
         "leje": "Miete", "husleje": "Kaltmiete", "depositum": "Kaution",
         "vand": "Wasser", "varme": "Heizung", "strøm": "Strom",
@@ -110,7 +109,7 @@ elif thema == "Wörterbuch & Übersetzer (DA / DE)":
             if eingabe in woerterbuch:
                 st.success(f"**{eingabe.capitalize()}** ➔ **{woerterbuch[eingabe]}**")
                 gefunden = True
-        else:  # Deutsch -> Dänisch
+        else:
             treffer = [da for da, de in woerterbuch.items() if eingabe in de.lower()]
             if treffer:
                 st.success(f"**{eingabe.capitalize()}** ➔ **{', '.join(treffer)}**")
@@ -119,21 +118,22 @@ elif thema == "Wörterbuch & Übersetzer (DA / DE)":
         if not gefunden:
             st.info("💡 Das Wort ist noch nicht in der Schnell-Datenbank. Verwende Online-Suche...")
             try:
-                from deep_translator import GoogleTranslator
                 if richtung == "Dänisch ➔ Deutsch":
-                    res = GoogleTranslator(source='da', target='de').translate(eingabe)
+                    res = MyMemoryTranslator(source='da-DK', target='de-DE').translate(eingabe)
                 else:
-                    res = GoogleTranslator(source='de', target='da').translate(eingabe)
+                    res = MyMemoryTranslator(source='de-DE', target='da-DK').translate(eingabe)
                 st.success(f"**Übersetzung:** {res}")
             except Exception as e:
-                st.warning("Keine Treffer im Wörterbuch gefunden.")
+                st.warning("Keine Treffer gefunden.")
 
     with st.expander("📖 Alle gespeicherten Wörterbuch-Begriffe anzeigen"):
         st.json(woerterbuch)
 
+
+# --- MODUL 4: ENTFERNUNGSRECHNER ---
 elif thema == "Entfernungsrechner (Dänemark)":
     st.subheader("📏 Entfernungsrechner")
-    st.write("Berechne die Luftlinie zwischen zwei Orten (z. B. Flensburg und Kopenhagen):")
+    st.write("Berechne die Luftlinie zwischen zwei Orten:")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -146,22 +146,52 @@ elif thema == "Entfernungsrechner (Dänemark)":
             geolocator = Nominatim(user_agent="daenemark_companion_app")
             
             try:
-                # Koordinaten für Startort ermitteln
                 location_start = geolocator.geocode(ort_start)
-                # Koordinaten für Zielort ermitteln
                 location_ziel = geolocator.geocode(ort_ziel)
                 
                 if location_start and location_ziel:
                     coords_start = (location_start.latitude, location_start.longitude)
                     coords_ziel = (location_ziel.latitude, location_ziel.longitude)
                     
-                    # Entfernung berechnen
                     distanz_km = geodesic(coords_start, coords_ziel).km
                     
                     st.success(f"**Entfernung (Luftlinie):** ca. **{distanz_km:.1f} km**")
                     st.info(f"📍 **Start:** {location_start.address}\n\n📍 **Ziel:** {location_ziel.address}")
                 else:
-                    st.error("Einer der Orte konnte nicht gefunden werden. Bitte überprüfe die Schreibweise.")
+                    st.error("Einer der Orte konnte nicht gefunden werden.")
                     
             except Exception as e:
                 st.error(f"Fehler bei der Adresssuche: {e}")
+
+
+# --- MODUL 5: WIKIPEDIA ORTS-INFOS ---
+elif thema == "Wikipedia Orts-Infos":
+    st.subheader("📚 Wikipedia Orts-Suche")
+    st.write("Erfahre mehr über dänische Städte und Regionen:")
+    
+    ort_suche = st.text_input("Stadt oder Region eingeben:", value="Kopenhagen")
+    
+    if st.button("Informationen abrufen"):
+        if ort_suche:
+            import wikipediaapi
+            
+            # Wikipedia-Instanz mit individuellem User-Agent erstellen (verhindert API-Sperren)
+            wiki = wikipediaapi.Wikipedia(
+                user_agent="DaenemarkCompanionApp/1.0 (contact@example.com)",
+                language="de"
+            )
+            
+            # Suche nach der Seite
+            page = wiki.page(f"{ort_suche} (Dänemark)")
+            if not page.exists():
+                page = wiki.page(ort_suche)
+                
+            if page.exists():
+                st.success(f"**Infos zu {page.title}:**")
+                
+                # Kurze Zusammenfassung (erste 500 Zeichen)
+                zusammenfassung = page.summary[:600] + "..." if len(page.summary) > 600 else page.summary
+                st.write(zusammenfassung)
+                st.markdown(f"🔗 [Vollständigen Wikipedia-Artikel lesen]({page.fullurl})")
+            else:
+                st.error("Zu diesem Ort wurde leider kein Wikipedia-Eintrag gefunden.")
