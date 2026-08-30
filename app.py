@@ -1,5 +1,7 @@
 import streamlit as st
 from deep_translator import MyMemoryTranslator
+from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 
 # --- KOPFZEILE & SEITEN-LAYOUT ---
 st.set_page_config(page_title="Dänemark Companion", page_icon="🇩🇰", layout="centered")
@@ -10,7 +12,12 @@ st.caption("Dein Helfer für das Auswandern nach Dänemark")
 # Navigation über ein Auswahlmenü
 thema = st.selectbox(
     "Was möchtest du tun?",
-    ["Währungsrechner (DKK / EUR)", "Wichtige Links & Adressen", "Wörterbuch & Übersetzer (DA / DE)"]
+    [
+        "Währungsrechner (DKK / EUR)",
+        "Wichtige Links & Adressen",
+        "Wörterbuch & Übersetzer (DA / DE)",
+        "Entfernungsrechner (Dänemark)"
+    ]
 )
 
 st.divider()
@@ -123,3 +130,38 @@ elif thema == "Wörterbuch & Übersetzer (DA / DE)":
 
     with st.expander("📖 Alle gespeicherten Wörterbuch-Begriffe anzeigen"):
         st.json(woerterbuch)
+
+elif thema == "Entfernungsrechner (Dänemark)":
+    st.subheader("📏 Entfernungsrechner")
+    st.write("Berechne die Luftlinie zwischen zwei Orten (z. B. Flensburg und Kopenhagen):")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        ort_start = st.text_input("Startort:", value="Flensburg")
+    with col2:
+        ort_ziel = st.text_input("Zielort:", value="Kopenhagen")
+        
+    if st.button("Entfernung berechnen"):
+        if ort_start and ort_ziel:
+            geolocator = Nominatim(user_agent="daenemark_companion_app")
+            
+            try:
+                # Koordinaten für Startort ermitteln
+                location_start = geolocator.geocode(ort_start)
+                # Koordinaten für Zielort ermitteln
+                location_ziel = geolocator.geocode(ort_ziel)
+                
+                if location_start and location_ziel:
+                    coords_start = (location_start.latitude, location_start.longitude)
+                    coords_ziel = (location_ziel.latitude, location_ziel.longitude)
+                    
+                    # Entfernung berechnen
+                    distanz_km = geodesic(coords_start, coords_ziel).km
+                    
+                    st.success(f"**Entfernung (Luftlinie):** ca. **{distanz_km:.1f} km**")
+                    st.info(f"📍 **Start:** {location_start.address}\n\n📍 **Ziel:** {location_ziel.address}")
+                else:
+                    st.error("Einer der Orte konnte nicht gefunden werden. Bitte überprüfe die Schreibweise.")
+                    
+            except Exception as e:
+                st.error(f"Fehler bei der Adresssuche: {e}")
