@@ -1,5 +1,5 @@
 import streamlit as st
-from deep_translator import LibreTranslator
+from deep_translator import MyMemoryTranslator
 
 # --- KOPFZEILE & SEITEN-LAYOUT ---
 st.set_page_config(page_title="Dänemark Companion", page_icon="🇩🇰", layout="centered")
@@ -75,10 +75,11 @@ elif thema == "Wörterbuch & Übersetzer (DA / DE)":
     
     if eingabe:
         try:
+            # MyMemory nutzt reine ISO-Sprachcodes: 'da' und 'de'
             if richtung == "Dänisch ➔ Deutsch":
-                ergebnis = LibreTranslator(source='da', target='de').translate(eingabe)
+                ergebnis = MyMemoryTranslator(source='da', target='de').translate(eingabe)
             else:
-                ergebnis = LibreTranslator(source='de', target='da').translate(eingabe)
+                ergebnis = MyMemoryTranslator(source='de', target='da').translate(eingabe)
                 
             st.success(f"**Übersetzung:** {ergebnis}")
             
