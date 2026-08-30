@@ -60,28 +60,66 @@ elif thema == "Wichtige Links & Adressen":
             st.divider()
 
 
-# --- MODUL 3: UNBEGRENZTES WÖRTERBUCH & ÜBERSETZER ---
+# --- MODUL 3: WÖRTERBUCH & ÜBERSETZER ---
 elif thema == "Wörterbuch & Übersetzer (DA / DE)":
-    st.subheader("🌐 Dänisch-Deutsch Übersetzer")
-    st.write("Übersetze beliebige Wörter oder ganze Sätze:")
+    st.subheader("🌐 Dänisch-Deutsch Wörterbuch")
     
+    # Integrierte Vokabeldatenbank für präzise Ergebnisse
+    woerterbuch = {
+        # Grundbegriffe & Alltag
+        "ja": "ja", "nej": "nein", "tak": "danke", "mange tak": "vielen Dank",
+        "hej": "hallo", "farvel": "auf Wiedersehen", "godmorgen": "guten Morgen",
+        "goddag": "guten Tag", "godaften": "guten Abend", "godnat": "gute Nacht",
+        "undskyld": "Entschuldigung", "hvilken": "welcher / welche", "hvor": "wo",
+        "hvad": "was", "hvem": "wer", "hvornår": "wann", "hvorfor": "warum",
+        "ikke": "nicht", "måske": "vielleicht", "hjælp": "Hilfe",
+
+        # Behörden & Auswandern
+        "kommune": "Gemeinde / Kommune", "borgerservice": "Bürgerservice",
+        "cpr-nummer": "Personennummer (CPR)", "skat": "Steuer / Steuerbehörde",
+        "skattekort": "Steuerkarte", "nemid": "MitID / NemID", "mitid": "MitID",
+        "arbejde": "Arbeit", "job": "Job", "ansøgning": "Bewerbung",
+        "kontrakt": "Vertrag", "løn": "Lohn / Gehalt", "opholdstilladelse": "Aufenthaltserlaubnis",
+        
+        # Wohnung & Leben
+        "bolig": "Wohnung / Haus", "lejlighed": "Wohnung", "hus": "Haus",
+        "leje": "Miete", "husleje": "Kaltmiete", "depositum": "Kaution",
+        "vand": "Wasser", "varme": "Heizung", "strøm": "Strom",
+        "supermarked": "Supermarkt", "butik": "Geschäft", "bil": "Auto"
+    }
+
     richtung = st.radio(
         "Richtung wählen:",
         ["Dänisch ➔ Deutsch", "Deutsch ➔ Dänisch"],
         horizontal=True
     )
-    
-    eingabe = st.text_input("Wort oder Satz eingeben:").strip()
-    
+
+    eingabe = st.text_input("Wort oder Begriff eingeben:").strip().lower()
+
     if eingabe:
-        try:
-            # Hier nutzen wir exakt die aus der Fehlermeldung vorgegebenen Sprach-Codes:
-            if richtung == "Dänisch ➔ Deutsch":
-                ergebnis = MyMemoryTranslator(source='da-DK', target='de-DE').translate(eingabe)
-            else:
-                ergebnis = MyMemoryTranslator(source='de-DE', target='da-DK').translate(eingabe)
-                
-            st.success(f"**Übersetzung:** {ergebnis}")
-            
-        except Exception as e:
-            st.error(f"Fehler bei der Übersetzung: {e}")
+        gefunden = False
+        
+        if richtung == "Dänisch ➔ Deutsch":
+            if eingabe in woerterbuch:
+                st.success(f"**{eingabe.capitalize()}** ➔ **{woerterbuch[eingabe]}**")
+                gefunden = True
+        else:  # Deutsch -> Dänisch
+            treffer = [da for da, de in woerterbuch.items() if eingabe in de.lower()]
+            if treffer:
+                st.success(f"**{eingabe.capitalize()}** ➔ **{', '.join(treffer)}**")
+                gefunden = True
+
+        if not gefunden:
+            st.info("💡 Das Wort ist noch nicht in der Schnell-Datenbank. Verwende Online-Suche...")
+            try:
+                from deep_translator import GoogleTranslator
+                if richtung == "Dänisch ➔ Deutsch":
+                    res = GoogleTranslator(source='da', target='de').translate(eingabe)
+                else:
+                    res = GoogleTranslator(source='de', target='da').translate(eingabe)
+                st.success(f"**Übersetzung:** {res}")
+            except Exception as e:
+                st.warning("Keine Treffer im Wörterbuch gefunden.")
+
+    with st.expander("📖 Alle gespeicherten Wörterbuch-Begriffe anzeigen"):
+        st.json(woerterbuch)
