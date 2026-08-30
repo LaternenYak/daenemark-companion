@@ -1,5 +1,5 @@
 import streamlit as st
-import wikipedia
+import wikipediaapi
 from deep_translator import MyMemoryTranslator
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
