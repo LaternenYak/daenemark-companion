@@ -75,11 +75,11 @@ elif thema == "Wörterbuch & Übersetzer (DA / DE)":
     
     if eingabe:
         try:
-            # MyMemory nutzt reine ISO-Sprachcodes: 'da' und 'de'
+            # Hier nutzen wir exakt die aus der Fehlermeldung vorgegebenen Sprach-Codes:
             if richtung == "Dänisch ➔ Deutsch":
-                ergebnis = MyMemoryTranslator(source='da', target='de').translate(eingabe)
+                ergebnis = MyMemoryTranslator(source='da-DK', target='de-DE').translate(eingabe)
             else:
-                ergebnis = MyMemoryTranslator(source='de', target='da').translate(eingabe)
+                ergebnis = MyMemoryTranslator(source='de-DE', target='da-DK').translate(eingabe)
                 
             st.success(f"**Übersetzung:** {ergebnis}")
             
